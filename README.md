@@ -1,79 +1,90 @@
-# RL Differential Drive Navigation with LiDAR and EKF
+# Multi-Agent RL Path Planning in Gazebo (Differential Drive Robots)
 
 ## 1. Project Overview
 
-This project investigates reinforcement learning (RL) methods for autonomous navigation of a differential-drive ground robot operating in a stochastic and partially observable environment.
+This project investigates reinforcement learning (RL) methods for **multi-agent autonomous navigation** in a simulated Gazebo environment using differential-drive robots.
 
-The robot is equipped with:
-- Wheel encoders for odometry  
-- A 2D LiDAR sensor for obstacle detection  
+The goal is to develop agents that can:
+- Navigate toward assigned goals  
+- Avoid static obstacles  
+- Avoid collisions with other agents  
+- Operate under stochastic motion and sensor noise  
 
-To simulate realistic robotics conditions:
-- Wheel slip is introduced as stochastic process noise  
-- LiDAR measurements are corrupted with Gaussian noise  
-- An Extended Kalman Filter (EKF) is used for state estimation  
-
-The objective is to learn a navigation policy that safely reaches a goal while avoiding obstacles.
+The system is designed to bridge:
+- Classical planning (Dynamic Programming)
+- Tabular RL methods
+- Multi-agent reinforcement learning (future versions)
 
 ---
 
-## 2. Markov Decision Process (MDP) Formulation
+## 2. System Setup
 
+### Simulation Environment
+- ROS 2 + Gazebo  
+- Differential-drive robots (EduBot platform)  
+- 2D LiDAR sensor for perception  
 
-The navigation task is modeled as a Markov Decision Process (MDP):
+### Sources of Uncertainty
+- Wheel slip (process noise)  
+- LiDAR noise (measurement noise)  
+- Multi-agent interaction (non-stationary environment)  
+
+---
+
+## 3. Markov Decision Process (MDP) Formulation
+
+The navigation problem is formulated as a Markov Decision Process:
 
 M = (S, A, P, R, γ)
 
----
-
-### 2.1 State Space (S)
-
-The true robot state is:
-
-x_t = (x, y, θ)
-
-However, due to sensor noise and wheel slip, the agent does not have direct access to the true state.
-
-Instead, the agent observes an estimated belief state from the EKF:
-
-- Estimated pose: (x̂, ŷ, θ̂)
-- LiDAR beam measurements
-- Relative goal position in the robot frame
-
-Thus, the RL state is defined as:
-
-s_t = [x̂, ŷ, θ̂, LiDAR, Goal_relative]
+This formulation is critical because:
+- The agent must **learn unknown transition dynamics**
+- The agent must **infer reward structure through interaction**
+- Future extensions will include **model-based RL / world models**
 
 ---
 
-### 2.2 Action Space (A)
+### 3.1 State Space (S)
 
-For the simplified tabular subtask (Grid World):
+Each agent observes:
 
-- Up  
-- Down  
-- Left  
-- Right  
+- Robot pose estimate: (x, y, θ)  
+- LiDAR scan data  
+- Relative goal position (robot frame)  
+- Relative positions of nearby agents (if observable)  
 
-For the full robot environment:
+Thus, the RL state is:
 
-- Forward  
+s_t = [x, y, θ, LiDAR, Goal_relative, Agent_relative]
+
+Note:
+- The state is **partially observable**
+- The environment becomes **non-stationary** in multi-agent settings  
+
+---
+
+### 3.2 Action Space (A)
+
+Discrete action space (Version 1):
+
+- Move Forward  
 - Turn Left  
 - Turn Right  
 - Stop  
 
-Later versions may use continuous actions (v, ω).
+Future extensions:
+- Continuous control (v, ω)
 
 ---
 
-### 2.3 Transition Function P(s' | s, a)
+### 3.3 Transition Function P(s' | s, a)
 
-State transitions are governed by differential-drive kinematics:
+State transitions follow differential-drive kinematics:
 
 d = (Δs_r + Δs_l) / 2  
 Δθ = (Δs_r − Δs_l) / b  
 
-Wheel slip is modeled as stochastic process noise:
+With stochastic wheel slip:
 
 Δs_l' = Δs_l + ε_l  
 Δs_r' = Δs_r + ε_r  
@@ -82,107 +93,85 @@ where:
 
 ε ~ N(0, σ²)
 
-Thus, transitions are stochastic.
+Thus:
+- Transitions are **stochastic**
+- Multi-agent interactions introduce **non-stationarity**
 
 ---
 
-### 2.4 Reward Function R(s, a)
+### 3.4 Reward Function R(s, a)
 
-The reward function is defined as:
+The reward function is designed to encourage safe and efficient navigation:
 
-- +100 for reaching the goal  
-- -100 for collision  
-- -1 per time step (encourages shorter paths)  
-- Optional shaping reward based on distance reduction  
-
-This shaping encourages efficient and safe navigation.
+- +100 → Goal reached  
+- -100 → Collision (obstacle or agent)  
+- -1 → Time step penalty  
+- Optional shaping: distance-to-goal reduction  
 
 ---
 
-### 2.5 Terminal States
+### 3.5 Terminal Conditions
 
 Episodes terminate when:
 
 - Goal is reached  
 - Collision occurs  
-- Maximum step limit is reached  
+- Maximum step limit is exceeded  
 
 ---
 
-### 2.6 Stochasticity and Model Learning Motivation
+### 3.6 Why MDP Matters (Grading Critical)
 
-The transition dynamics are stochastic due to wheel slip in the motion model, and observations are corrupted by LiDAR measurement noise. Although the environment is fully implemented, the agent does not have direct access to the true transition probabilities or reward structure. Instead, it must learn these properties through interaction.
+Even though the environment is implemented in Gazebo, the agent:
 
-This formulation enables future extensions toward model-based reinforcement learning, where the agent may explicitly estimate or approximate the transition function P(s' | s, a) and reward function R(s, a) from experience.
+- Does **not know transition probabilities P(s' | s, a)**  
+- Does **not know the true reward function R(s, a)**  
+- Must **learn from interaction data**
 
----
-
-## 3. Extended Kalman Filter (EKF)
-
-Because the robot operates under motion and sensing uncertainty, state estimation is performed using an Extended Kalman Filter (EKF).
-
-The EKF maintains a Gaussian belief over the robot pose:
-
-x̂_t = (x̂, ŷ, θ̂)
-
-Prediction step:
-- Uses nonlinear differential-drive kinematics  
-- Propagates covariance using Jacobians of the motion model  
-- Incorporates wheel slip as process noise  
-
-Correction step:
-- Incorporates LiDAR-derived geometric measurements  
-- Updates pose estimate using measurement residuals and Kalman gain  
-
-The reinforcement learning agent receives the EKF-estimated pose rather than ground-truth state, making the task partially observable and more representative of real robotic systems.
+This enables:
+- Model-free RL (current)
+- Model-based RL / world models (future versions)
 
 ---
 
-## 4. Simplified Grid World Subtask (For Dynamic Programming)
+## 4. Simplified Subtask (Grid World for DP)
 
-Since the full navigation problem has a continuous state space, a simplified discrete Grid World environment is implemented to demonstrate tabular Dynamic Programming methods.
+To support **tabular Dynamic Programming (DP)**, a simplified environment is implemented:
 
-Grid World characteristics:
-
-- Finite state space  
+### Grid World:
+- Discrete 2D grid  
 - Deterministic transitions  
-- Obstacles  
-- Single goal state  
+- Obstacles and goal  
 
-This subtask allows implementation of:
+This allows implementation of:
 
 - Policy Iteration  
 - Value Iteration  
-- Q-value improvements  
+- Q-value updates  
+
+This subtask ensures:
+- Theoretical correctness
+- Debugging before scaling to Gazebo
 
 ---
 
 ## 5. Implemented Algorithms (Version 1)
 
 ### Dynamic Programming
-- Policy Iteration  
-- Value Iteration  
+- Policy Iteration (V and Q)
+- Value Iteration
 
-### Tabular Reinforcement Learning
-- Monte Carlo Prediction  
-- TD(0)  
-- Q-learning  
-- Epsilon-Greedy exploration  
-
-Future versions will include:
-
-- TD(n)  
-- TD(λ)  
-- Sarsa(n)  
-- Sarsa(λ)  
-- Function approximation  
-- Deep Q Networks (DQN)  
+### Tabular RL
+- Monte Carlo Prediction
+- TD(0)
+- Q-learning
+- Epsilon-Greedy exploration
 
 ---
 
 ## 6. Agent Framework
 
-All agents inherit from a base class:
+All agents follow a unified interface:
 
 ```python
 class BaseAgent:
@@ -194,14 +183,3 @@ class BaseAgent:
 
     def select_action(self, state):
         pass
-
----
-
-## Running (Version 1)
-
-From the project root directory:
-
-```bash
-pip install -r requirements.txt
-python -m src.main --algo value_iteration
-python -m src.main --algo policy_iteration
