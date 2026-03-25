@@ -120,7 +120,7 @@ Episodes terminate when:
 
 ---
 
-### 3.6 Why MDP Matters (Grading Critical)
+### 3.6 Why MDP Matters
 
 Even though the environment is implemented in Gazebo, the agent:
 
