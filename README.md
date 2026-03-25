@@ -1,4 +1,4 @@
-# Multi-Agent RL Path Planning in Gazebo (Differential Drive Robots)
+# Multi-Agent RL Path Planning for Differential Drive Robots (Gazebo)
 
 ## 1. Project Overview
 
