@@ -1,177 +1,162 @@
 # Multi-Agent RL Path Planning for Differential Drive Robots (Gazebo)
 
+## Version 1: Dynamic Programming Foundation
+
+---
+
 ## 1. Project Overview
 
-This project investigates reinforcement learning (RL) methods for **multi-agent autonomous navigation** in a simulated Gazebo environment using differential-drive robots.
+This project investigates reinforcement learning (RL) methods for **autonomous navigation** of differential-drive robots.
 
-The goal is to develop agents that can:
+The long-term goal is to develop agents that can:
 - Navigate toward assigned goals  
-- Avoid static obstacles  
-- Avoid collisions with other agents  
-- Operate under stochastic motion and sensor noise  
+- Avoid obstacles and collisions  
+- Operate under uncertainty (sensor noise, motion noise)  
+- Scale to multi-agent environments  
 
-The system is designed to bridge:
-- Classical planning (Dynamic Programming)
-- Tabular RL methods
-- Multi-agent reinforcement learning (future versions)
+This project bridges:
+- **Markov Decision Processes (MDPs)**
+- **Dynamic Programming (DP)**
+- **Reinforcement Learning (future versions)**
 
 ---
 
-## 2. System Setup
+## 2. Version 1 Scope
 
-### Simulation Environment
+Version 1 focuses on building a strong theoretical and implementation foundation:
+
+- MDP formulation of navigation  
+- GridWorld abstraction of the environment  
+- Dynamic Programming methods:
+  - Value Iteration  
+  - Policy Iteration  
+- Modular agent framework  
+- Visualization and result saving  
+
+More advanced RL methods will be implemented in later versions.
+
+---
+
+## 3. System Setup (Target System)
+
+### Simulation Environment (Future Work)
 - ROS 2 + Gazebo  
-- Differential-drive robots (EduBot platform)  
-- 2D LiDAR sensor for perception  
+- Differential-drive robot (EduBot platform)  
+- 2D LiDAR for perception  
 
-### Sources of Uncertainty
+### Sources of Uncertainty (Future Work)
 - Wheel slip (process noise)  
 - LiDAR noise (measurement noise)  
-- Multi-agent interaction (non-stationary environment)  
+- Multi-agent interaction (non-stationary dynamics)  
 
 ---
 
-## 3. Markov Decision Process (MDP) Formulation
+## 4. Markov Decision Process (MDP) Formulation
 
-The navigation problem is formulated as a Markov Decision Process:
+The navigation problem is modeled as an MDP:
 
-M = (S, A, P, R, γ)
+\[
+M = (S, A, P, R, \gamma)
+\]
 
 This formulation is critical because:
-- The agent must **learn unknown transition dynamics**
-- The agent must **infer reward structure through interaction**
-- Future extensions will include **model-based RL / world models**
+- The agent must **learn behavior through interaction**
+- Transition dynamics may be **unknown or stochastic**
+- Enables extension to **model-based RL and world models**
 
 ---
 
-### 3.1 State Space (S)
+### 4.1 State Space (S)
 
-Each agent observes:
+In the GridWorld abstraction:
 
-- Robot pose estimate: (x, y, θ)  
-- LiDAR scan data  
-- Relative goal position (robot frame)  
-- Relative positions of nearby agents (if observable)  
-
-Thus, the RL state is:
-
-s_t = [x, y, θ, LiDAR, Goal_relative, Agent_relative]
-
-Note:
-- The state is **partially observable**
-- The environment becomes **non-stationary** in multi-agent settings  
+- State = (x, y) position in a 2D grid  
+- Invalid states correspond to obstacles  
 
 ---
 
-### 3.2 Action Space (A)
+### 4.2 Action Space (A)
 
-Discrete action space (Version 1):
+Discrete actions:
 
-- Move Forward  
-- Turn Left  
-- Turn Right  
-- Stop  
-
-Future extensions:
-- Continuous control (v, ω)
+- UP  
+- DOWN  
+- LEFT  
+- RIGHT  
 
 ---
 
-### 3.3 Transition Function P(s' | s, a)
+### 4.3 Transition Function \( P(s' | s, a) \)
 
-State transitions follow differential-drive kinematics:
-
-d = (Δs_r + Δs_l) / 2  
-Δθ = (Δs_r − Δs_l) / b  
-
-With stochastic wheel slip:
-
-Δs_l' = Δs_l + ε_l  
-Δs_r' = Δs_r + ε_r  
-
-where:
-
-ε ~ N(0, σ²)
-
-Thus:
-- Transitions are **stochastic**
-- Multi-agent interactions introduce **non-stationarity**
+- Deterministic transitions  
+- Invalid actions (collision or boundary) result in staying in place  
 
 ---
 
-### 3.4 Reward Function R(s, a)
-
-The reward function is designed to encourage safe and efficient navigation:
+### 4.4 Reward Function \( R(s, a) \)
 
 - +100 → Goal reached  
-- -100 → Collision (obstacle or agent)  
-- -1 → Time step penalty  
-- Optional shaping: distance-to-goal reduction  
+- -1 → Step penalty  
+- -5 → Invalid move (collision/boundary)  
 
 ---
 
-### 3.5 Terminal Conditions
+### 4.5 Terminal Condition
 
-Episodes terminate when:
-
+Episode ends when:
 - Goal is reached  
-- Collision occurs  
-- Maximum step limit is exceeded  
 
 ---
 
-### 3.6 Why MDP Matters
+## 5. Simplified Subtask: GridWorld for DP
 
-Even though the environment is implemented in Gazebo, the agent:
+To enable exact Dynamic Programming solutions, a simplified environment is used:
 
-- Does **not know transition probabilities P(s' | s, a)**  
-- Does **not know the true reward function R(s, a)**  
-- Must **learn from interaction data**
-
-This enables:
-- Model-free RL (current)
-- Model-based RL / world models (future versions)
-
----
-
-## 4. Simplified Subtask (Grid World for DP)
-
-To support **tabular Dynamic Programming (DP)**, a simplified environment is implemented:
-
-### Grid World:
-- Discrete 2D grid  
+- 100×100 grid  
+- Fixed start and goal  
+- Static obstacles  
 - Deterministic transitions  
-- Obstacles and goal  
 
-This allows implementation of:
-
-- Policy Iteration  
-- Value Iteration  
-- Q-value updates  
-
-This subtask ensures:
-- Theoretical correctness
-- Debugging before scaling to Gazebo
+This provides:
+- A **well-defined MDP**
+- A **debuggable environment**
+- A **baseline before moving to Gazebo**
 
 ---
 
-## 5. Implemented Algorithms (Version 1)
+## 6. Implemented Algorithms (Version 1)
 
 ### Dynamic Programming
-- Policy Iteration (V and Q)
-- Value Iteration
 
-### Tabular RL
-- Monte Carlo Prediction
-- TD(0)
-- Q-learning
-- Epsilon-Greedy exploration
+- **Value Iteration**
+  - Updates value function using Bellman optimality equation  
+
+- **Policy Iteration**
+  - Alternates between:
+    - Policy Evaluation  
+    - Policy Improvement  
+
+### Q-value Based Policy Improvement
+
+Policy improvement is performed using Q-values computed from the value function:
+
+\[
+Q(s, a) = r + \gamma V(s')
+\]
+
+The optimal action is selected as:
+
+\[
+\pi(s) = \arg\max_a Q(s, a)
+\]
+
+This ensures compatibility with future RL methods such as Q-learning and Sarsa.
 
 ---
 
-## 6. Agent Framework
+## 7. Agent Framework
 
-All agents follow a unified interface:
+A modular agent framework is implemented:
 
 ```python
 class BaseAgent:
