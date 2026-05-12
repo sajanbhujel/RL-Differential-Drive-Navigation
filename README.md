@@ -2,7 +2,7 @@
 
 ## Overview
 
-This project develops a reinforcement learning framework for autonomous navigation of multiple differential-drive robots in simulation. The project begins with a simplified GridWorld environment for Markov Decision Process formulation and Dynamic Programming, then extends to a ROS 2/Gazebo-based multi-agent navigation environment using deep reinforcement learning.
+This project develops a reinforcement learning framework for autonomous navigation of multiple differential-drive robots in simulation. This project develops a reinforcement learning framework for autonomous navigation of multiple differential-drive robots in a ROS 2/Gazebo-based multi-agent simulation environment using deep reinforcement learning.
 
 The main task is to train multiple EduBot differential-drive robots to navigate toward their assigned goals while avoiding static obstacles, arena walls, and collisions with each other.
 
