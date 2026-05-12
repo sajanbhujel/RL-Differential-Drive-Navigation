@@ -264,7 +264,7 @@ class DPAgent:
 
 
 if __name__ == "__main__":
-    from src.env.grid_world import GridWorld100
+    from src.environments.grid_world import GridWorld100
 
     env = GridWorld100()
     agent = DPAgent(DPConfig(gamma=0.99, theta=1e-6, max_iterations=10000))

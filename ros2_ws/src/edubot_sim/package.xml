@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>edubot_sim</name>
+  <version>0.0.0</version>
+  <description>EduBot simulation package</description>
+  <maintainer email="sajan.bhujel@und.edu">sajan</maintainer>
+  <license>TODO: License declaration</license>
+
+  <buildtool_depend>ament_python</buildtool_depend>
+
+  <depend>rclpy</depend>
+  <depend>sensor_msgs</depend>
+  <depend>launch</depend>
+  <depend>launch_ros</depend>
+  <depend>robot_state_publisher</depend>
+  <depend>ros_gz_sim</depend>
+  <depend>ros_gz_bridge</depend>
+  <depend>xacro</depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>

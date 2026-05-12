@@ -1,0 +1,321 @@
+<?xml version="1.0" ?>
+<sdf version="1.8">
+    <world name="training_arena">
+        <physics name="1ms" type="ignored">
+            <max_step_size>0.002</max_step_size>
+            <real_time_factor>3.0</real_time_factor>
+        </physics>
+
+        <plugin filename="gz-sim-physics-system" name="gz::sim::systems::Physics"/>
+        <plugin filename="gz-sim-user-commands-system" name="gz::sim::systems::UserCommands"/>
+        <plugin filename="gz-sim-scene-broadcaster-system" name="gz::sim::systems::SceneBroadcaster"/>
+        <plugin filename="gz-sim-contact-system" name="gz::sim::systems::Contact"/>
+
+        <plugin filename="gz-sim-sensors-system" name="gz::sim::systems::Sensors">
+            <render_engine>ogre2</render_engine>
+        </plugin>
+
+        <model name="world_axis_marker">
+            <static>true</static>
+            <pose>0 0 0.02 0 0 0</pose>
+
+            <!-- X axis: red -->
+            <link name="x_axis">
+                <pose>1.0 0 0 0 0 0</pose>
+                <visual name="visual">
+                    <geometry>
+                        <box>
+                            <size>2.0 0.04 0.04</size>
+                        </box>
+                    </geometry>
+                    <material>
+                        <ambient>1 0 0 1</ambient>
+                        <diffuse>1 0 0 1</diffuse>
+                    </material>
+                </visual>
+            </link>
+
+            <!-- Y axis: green -->
+            <link name="y_axis">
+                <pose>0 1.0 0 0 0 0</pose>
+                <visual name="visual">
+                    <geometry>
+                        <box>
+                            <size>0.04 2.0 0.04</size>
+                        </box>
+                    </geometry>
+                    <material>
+                        <ambient>0 1 0 1</ambient>
+                        <diffuse>0 1 0 1</diffuse>
+                    </material>
+                </visual>
+            </link>
+
+        </model>
+        
+        <light name="ceiling_light" type="point">
+            <pose>0 0 3 0 0 0</pose>
+            <diffuse>1 1 1 1</diffuse>
+            <specular>0.5 0.5 0.5 1</specular>
+            <attenuation>
+                <range>10</range>
+                <constant>0.5</constant>
+                <linear>0.1</linear>
+                <quadratic>0.01</quadratic>
+            </attenuation>
+        </light>
+
+        <model name="training_floor">
+            <static>true</static>
+            <link name="link">
+                <collision name="collision">
+                    <geometry><plane><normal>0 0 1</normal><size>100 100</size></plane></geometry>
+                </collision>
+                <visual name="visual">
+                    <geometry><plane><normal>0 0 1</normal><size>100 100</size></plane></geometry>
+                    <material>
+                        <ambient>0.8 0.8 0.8 1</ambient>
+                        <diffuse>0.8 0.8 0.8 1</diffuse>
+                        <specular>0.8 0.8 0.8 1</specular>
+                    </material>
+                </visual>
+            </link>
+        </model>
+
+        <model name="arena_walls">
+            <static>true</static>
+
+            <link name="wall_north">
+                <pose>4.0 0 0.25 0 0 0</pose>
+                <collision name="c">
+                    <geometry>
+                        <box><size>0.1 8.0 0.5</size></box>
+                    </geometry>
+                </collision>
+                <visual name="v">
+                    <geometry>
+                        <box><size>0.1 8.0 0.5</size></box>
+                    </geometry>
+                    <material>
+                        <ambient>1 1 1 1</ambient>
+                        <diffuse>1 1 1 1</diffuse>
+                        <specular>0.2 0.2 0.2 1</specular>
+                        <pbr>
+                            <metal>
+                                <albedo_map>file:///home/sajan.bhujel/capstone_multiagent_ws/src/edubot_sim/media/materials/textures/brick_wall.png</albedo_map>
+                            </metal>
+                        </pbr>
+                    </material>
+                </visual>
+            </link>
+
+            <link name="wall_south">
+                <pose>-4.0 0 0.25 0 0 0</pose>
+                <collision name="c">
+                    <geometry>
+                        <box><size>0.1 8.0 0.5</size></box>
+                    </geometry>
+                </collision>
+                <visual name="v">
+                    <geometry>
+                        <box><size>0.1 8.0 0.5</size></box>
+                    </geometry>
+                    <material>
+                        <ambient>1 1 1 1</ambient>
+                        <diffuse>1 1 1 1</diffuse>
+                        <specular>0.2 0.2 0.2 1</specular>
+                        <pbr>
+                            <metal>
+                                <albedo_map>file:///home/sajan.bhujel/capstone_multiagent_ws/src/edubot_sim/media/materials/textures/brick_wall.png</albedo_map>
+                            </metal>
+                        </pbr>
+                    </material>
+                </visual>
+            </link>
+
+            <link name="wall_east">
+                <pose>0 4.0 0.25 0 0 1.5708</pose>
+                <collision name="c">
+                    <geometry>
+                        <box><size>0.1 8.0 0.5</size></box>
+                    </geometry>
+                </collision>
+                <visual name="v">
+                    <geometry>
+                        <box><size>0.1 8.0 0.5</size></box>
+                    </geometry>
+                    <material>
+                        <ambient>1 1 1 1</ambient>
+                        <diffuse>1 1 1 1</diffuse>
+                        <specular>0.2 0.2 0.2 1</specular>
+                        <pbr>
+                            <metal>
+                                <albedo_map>file:///home/sajan.bhujel/capstone_multiagent_ws/src/edubot_sim/media/materials/textures/brick_wall.png</albedo_map>
+                            </metal>
+                        </pbr>
+                    </material>
+                </visual>
+            </link>
+
+            <link name="wall_west">
+                <pose>0 -4.0 0.25 0 0 1.5708</pose>
+                <collision name="c">
+                    <geometry>
+                        <box><size>0.1 8.0 0.5</size></box>
+                    </geometry>
+                </collision>
+                <visual name="v">
+                    <geometry>
+                        <box><size>0.1 8.0 0.5</size></box>
+                    </geometry>
+                    <material>
+                        <ambient>1 1 1 1</ambient>
+                        <diffuse>1 1 1 1</diffuse>
+                        <specular>0.2 0.2 0.2 1</specular>
+                        <pbr>
+                            <metal>
+                                <albedo_map>file:///home/sajan.bhujel/capstone_multiagent_ws/src/edubot_sim/media/materials/textures/brick_wall.png</albedo_map>
+                            </metal>
+                        </pbr>
+                    </material>
+                </visual>
+            </link>
+
+        </model>
+
+        <model name="cylinder_obs_1">
+            <pose>1.0 2.0 0.5 0 0 0</pose>
+            <static>true</static>
+            <link name="link">
+                <collision name="c">
+                    <geometry><cylinder><radius>0.5</radius><length>1</length></cylinder></geometry>
+                </collision>
+                <visual name="v">
+                    <geometry><cylinder><radius>0.5</radius><length>1</length></cylinder></geometry>
+                    <material>
+                        <ambient>0.35 0.35 0.35 1</ambient>
+                        <diffuse>0.45 0.45 0.45 1</diffuse>
+                        <specular>0.25 0.25 0.25 1</specular>
+                    </material>
+                </visual>
+            </link>
+        </model>
+
+        <model name="cylinder_obs_2">
+            <pose>-2 0 0.25 0 0 0</pose>
+            <static>true</static>
+            <link name="link">
+                <collision name="c">
+                    <geometry><cylinder><radius>0.5</radius><length>1</length></cylinder></geometry>
+                </collision>
+                <visual name="v">
+                    <geometry><cylinder><radius>0.5</radius><length>1</length></cylinder></geometry>
+                    <material>
+                        <ambient>0.55 0.35 0.15 1</ambient>
+                        <diffuse>0.65 0.45 0.20 1</diffuse>
+                        <specular>0.15 0.15 0.15 1</specular>
+                    </material>
+                </visual>
+            </link>
+        </model>
+
+        <model name="box_obs_1">
+            <pose>1.0 -1.5 0.25 0 0 0</pose>
+            <static>true</static>
+            <link name="link">
+                <collision name="c">
+                    <geometry><box><size>1 1 1</size></box></geometry>
+                </collision>
+                <visual name="v">
+                    <geometry><box><size>1 1 1</size></box></geometry>
+                    <material>
+                        <ambient>0.45 0.32 0.20 1</ambient>
+                        <diffuse>0.55 0.40 0.25 1</diffuse>
+                        <specular>0.10 0.10 0.10 1</specular>
+                    </material>
+                </visual>
+            </link>
+        </model>
+
+    <!-- Robot 1 Start Marker -->
+    <model name="robot1_start_marker">
+        <static>true</static>
+        <pose>-2 2 0.003 0 0 0</pose>
+        <link name="link">
+            <visual name="visual">
+                <geometry>
+                    <cylinder>
+                        <radius>0.1</radius>
+                        <length>0.005</length>
+                    </cylinder>
+                </geometry>
+                <material>
+                    <ambient>0 1 0 1</ambient>
+                    <diffuse>0 1 0 1</diffuse>
+                </material>
+            </visual>
+        </link>
+    </model>
+
+    <!-- Robot 1 Goal Marker -->
+    <model name="robot1_goal_marker">
+        <static>true</static>
+        <pose>2.5 -1.5 0.005 0 0 0</pose>
+        <link name="link">
+            <visual name="visual">
+                <geometry>
+                    <cylinder>
+                        <radius>0.30</radius>
+                        <length>0.005</length>
+                    </cylinder>
+                </geometry>
+                <material>
+                    <ambient>0 0 1 0.6</ambient>
+                    <diffuse>0 0 1 0.6</diffuse>
+                </material>
+            </visual>
+        </link>
+    </model>
+
+    <!-- Robot 2 Start Marker -->
+    <model name="robot2_start_marker">
+        <static>true</static>
+        <pose>2.5 2.5 0.004 0 0 0</pose>
+        <link name="link">
+            <visual name="visual">
+                <geometry>
+                    <cylinder>
+                        <radius>0.1</radius>
+                        <length>0.005</length>
+                    </cylinder>
+                </geometry>
+                <material>
+                    <ambient>1 0.5 0 1</ambient>
+                    <diffuse>1 0.5 0 1</diffuse>
+                </material>
+            </visual>
+        </link>
+    </model>
+
+    <!-- Robot 2 Goal Marker -->
+    <model name="robot2_goal_marker">
+        <static>true</static>
+        <pose>-2 -2 0.006 0 0 0</pose>
+        <link name="link">
+            <visual name="visual">
+                <geometry>
+                    <cylinder>
+                        <radius>0.30</radius>
+                        <length>0.005</length>
+                    </cylinder>
+                </geometry>
+                <material>
+                    <ambient>0.6 0 1 0.6</ambient>
+                    <diffuse>0.6 0 1 0.6</diffuse>
+                </material>
+            </visual>
+        </link>
+    </model>
+
+    </world>
+</sdf>

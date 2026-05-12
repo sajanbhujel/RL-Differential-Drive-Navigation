@@ -1,195 +1,615 @@
-# Multi-Agent RL Path Planning for Differential Drive Robots (Gazebo)
+# Multi-Agent Reinforcement Learning for Differential-Drive Robot Navigation in ROS 2 and Gazebo
 
+## Overview
+
+This project develops a reinforcement learning framework for autonomous navigation of multiple differential-drive robots in simulation. The project begins with a simplified GridWorld environment for Markov Decision Process formulation and Dynamic Programming, then extends to a ROS 2/Gazebo-based multi-agent navigation environment using deep reinforcement learning.
+
+The main task is to train multiple EduBot differential-drive robots to navigate toward their assigned goals while avoiding static obstacles, arena walls, and collisions with each other.
+
+The main method used in the Gazebo environment is **MADDPG** under a **Centralized Training with Decentralized Execution (CTDE)** framework. During training, each critic uses global multi-agent information, while during execution each robot selects actions using only its own local observation.
+
+This repository is organized as an evolving reinforcement learning capstone project. Version 1 focuses on MDP formulation and Dynamic Programming. Version 2 extends the project to model-free reinforcement learning, replay buffers, neural networks, and multi-agent deep reinforcement learning in Gazebo.
+
+---
+
+## Project Goals
+
+The goals of this project are to:
+
+- Formulate robot navigation as a reinforcement learning problem
+- Implement Dynamic Programming methods on a simplified GridWorld task
+- Build a ROS 2/Gazebo simulation environment for differential-drive robots
+- Train multi-agent policies for continuous robot control
+- Use LiDAR-based observations for obstacle avoidance
+- Apply MADDPG using a CTDE training framework
+- Organize training logs, plots, checkpoints, and technical challenges
+- Develop a portfolio-style reinforcement learning repository
+
+---
 
 ## Version 1 Scope
 
-This version focuses on:
-- MDP formulation
+Version 1 focused on the foundational reinforcement learning setup:
+
+- Markov Decision Process formulation
 - GridWorld abstraction
-- Dynamic Programming (Value Iteration, Policy Iteration)
-- Agent framework design
+- Dynamic Programming
+  - Value Iteration
+  - Policy Iteration
+- Basic agent framework
+- Value-function visualization
+- Policy visualization
 
-More advanced RL methods will be implemented in later versions.
-
-## 1. Project Overview
-
-This project investigates reinforcement learning (RL) methods for **multi-agent autonomous navigation** in a simulated Gazebo environment using differential-drive robots.
-
-The goal is to develop agents that can:
-- Navigate toward assigned goals  
-- Avoid static obstacles  
-- Avoid collisions with other agents  
-- Operate under stochastic motion and sensor noise  
-
-The system is designed to bridge:
-- Classical planning (Dynamic Programming)
-- Tabular RL methods
-- Multi-agent reinforcement learning (future versions)
+The simplified GridWorld environment was used to verify the MDP formulation before scaling the project to ROS 2 and Gazebo.
 
 ---
 
-## 2. System Setup
+## Version 2 Scope
 
-### Simulation Environment
-- ROS 2 + Gazebo  
-- Differential-drive robots (EduBot platform)  
-- 2D LiDAR sensor for perception  
+Version 2 extends the project from Dynamic Programming to model-free reinforcement learning and deep multi-agent reinforcement learning.
 
-### Sources of Uncertainty
-- Wheel slip (process noise)  
-- LiDAR noise (measurement noise)  
-- Multi-agent interaction (non-stationary environment)  
+The main additions in Version 2 are:
 
----
+- ROS 2/Gazebo multi-agent simulation
+- Two EduBot differential-drive robots
+- 2D LiDAR-based perception
+- Continuous action space
+- Multi-agent replay buffer
+- Actor-Critic neural networks
+- MADDPG training framework
+- Centralized Training with Decentralized Execution
+- Training logs and reward plots
+- Model checkpoint organization
+- Technical challenge documentation
 
-## 3. Markov Decision Process (MDP) Formulation
+The main deep reinforcement learning algorithm implemented in Version 2 is:
 
-The navigation problem is formulated as a Markov Decision Process:
-
-M = (S, A, P, R, γ)
-
-This formulation is critical because:
-- The agent must **learn unknown transition dynamics**
-- The agent must **infer reward structure through interaction**
-- Future extensions will include **model-based RL / world models**
+**MADDPG: Multi-Agent Deep Deterministic Policy Gradient**
 
 ---
 
-### 3.1 State Space (S)
+## Repository Structure
 
-Each agent observes:
-
-- Robot pose estimate: (x, y, θ)  
-- LiDAR scan data  
-- Relative goal position (robot frame)  
-- Relative positions of nearby agents (if observable)  
-
-Thus, the RL state is:
-
-s_t = [x, y, θ, LiDAR, Goal_relative, Agent_relative]
-
-Note:
-- The state is **partially observable**
-- The environment becomes **non-stationary** in multi-agent settings  
+```text
+RL-ROBUST-NAVIGATION/
+│
+├── README.md
+├── requirements.txt
+├── technical-challenges.md
+├── .gitignore
+│
+├── results/
+│   ├── grid_world/
+│   │   ├── value_iteration_value.png
+│   │   ├── value_iteration_policy.png
+│   │   ├── policy_iteration_value.png
+│   │   └── policy_iteration_policy.png
+│   │
+│   └── gazebo_maddpg/
+│       ├── training_logs/
+│       │   └── training_log.csv
+│       ├── training_plots/
+│       │   └── training_curve.png
+│       └── saved_models/
+│
+├── src/
+│   ├── agents/
+│   │   ├── __init__.py
+│   │   └── dp_agent.py
+        └── maddpg_agent.py
+│   │
+│   ├── environments/
+│   │   ├── __init__.py
+│   │   ├── grid_world.py
+│   │   └── multiagent_gazebo_env.py
+│   │
+│   └── algorithms/
+│       ├── __init__.py
+│       │
+│       ├── dynamic_programming/
+│       │   ├── __init__.py
+│       │   └── run_dp.py
+│       │
+│       └── deep_rl/
+│           ├── __init__.py
+│           ├── networks.py
+│           ├── replay_buffer.py
+│           ├── train_maddpg.py
+│
+└── ros2_ws/
+    └── src/
+        └── edubot_sim/
+            ├── package.xml
+            ├── setup.py
+            ├── setup.cfg
+            ├── resource/
+            │   └── edubot_sim
+            ├── edubot_sim/
+            │   └── __init__.py
+            ├── launch/
+            │   └── edubot_launch.py
+            ├── urdf/
+            │   └── edubot.urdf.xacro
+            ├── worlds/
+            │   └── training_arena.sdf
+            └── media/
+```
 
 ---
 
-### 3.2 Action Space (A)
+## Simulation Environment
 
-Discrete action space (Version 1):
+The main simulation environment is built using **ROS 2 and Gazebo**.
 
-- Move Forward  
-- Turn Left  
-- Turn Right  
-- Stop  
+### Robot Platform
 
-Future extensions:
-- Continuous control (v, ω)
+The project uses multiple EduBot differential-drive robots. Each robot has:
+
+- Differential-drive motion
+- 2D LiDAR sensor
+- Gazebo pose tracking
+- Continuous velocity control
+
+Each robot receives a continuous action:
+
+```text
+action = [linear_velocity, angular_velocity]
+```
+
+The linear velocity controls forward motion, while the angular velocity controls turning.
 
 ---
 
-### 3.3 Transition Function P(s' | s, a)
+## Gazebo World
 
-State transitions follow differential-drive kinematics:
+The Gazebo world includes:
 
-d = (Δs_r + Δs_l) / 2  
-Δθ = (Δs_r − Δs_l) / b  
+- A bounded 2D arena
+- Static walls
+- Cylindrical obstacles
+- Box obstacles
+- Start markers
+- Goal markers
+- Multiple EduBot robots
 
-With stochastic wheel slip:
+The environment is designed so that both robots must reach their own goals while avoiding obstacles and avoiding each other.
 
-Δs_l' = Δs_l + ε_l  
-Δs_r' = Δs_r + ε_r  
+---
+
+## Markov Decision Process Formulation
+
+The navigation task is formulated as a Markov Decision Process:
+
+```text
+M = (S, A, P, R, gamma)
+```
 
 where:
 
-ε ~ N(0, σ²)
+- `S` is the state or observation space
+- `A` is the action space
+- `P` is the transition function
+- `R` is the reward function
+- `gamma` is the discount factor
 
-Thus:
-- Transitions are **stochastic**
-- Multi-agent interactions introduce **non-stationarity**
+In the Gazebo environment, the agent does not know the transition function analytically. Instead, it learns from interaction data collected during simulation.
 
----
-
-### 3.4 Reward Function R(s, a)
-
-The reward function is designed to encourage safe and efficient navigation:
-
-- +100 → Goal reached  
-- -100 → Collision (obstacle or agent)  
-- -1 → Time step penalty  
-- Optional shaping: distance-to-goal reduction  
+Because the task contains multiple robots, the environment is also non-stationary from the perspective of each individual robot. The action of one robot can change the next state and reward of the other robot. This motivates the use of a multi-agent actor-critic method.
 
 ---
 
-### 3.5 Terminal Conditions
+## Observation Space
 
-Episodes terminate when:
+Each robot receives a local observation containing:
 
-- Goal is reached  
-- Collision occurs  
-- Maximum step limit is exceeded  
+- Downsampled LiDAR scan
+- Robot global position
+- Robot yaw angle
+- Distance to the goal
+- Angle to the goal
+- Relative position of the other robot
+- Current linear velocity
+- Current angular velocity
 
----
+The local observation is used by each actor network to select an action.
 
-### 3.6 Why MDP Matters
-
-Even though the environment is implemented in Gazebo, the agent:
-
-- Does **not know transition probabilities P(s' | s, a)**  
-- Does **not know the true reward function R(s, a)**  
-- Must **learn from interaction data**
-
-This enables:
-- Model-free RL (current)
-- Model-based RL / world models (future versions)
+For critic training, the global state is formed by concatenating the observations of both robots.
 
 ---
 
-## 4. Simplified Subtask (Grid World for DP)
+## Action Space
 
-To support **tabular Dynamic Programming (DP)**, a simplified environment is implemented:
+### Version 2: Continuous Gazebo Actions
 
-### Grid World:
-- Discrete 2D grid  
-- Deterministic transitions  
-- Obstacles and goal  
+In the Gazebo environment, the action space is continuous:
 
-This allows implementation of:
+```text
+linear velocity  in [0, max_linear]
+angular velocity in [-max_angular, max_angular]
+```
 
-- Policy Iteration  
-- Value Iteration  
-- Q-value updates  
-
-This subtask ensures:
-- Theoretical correctness
-- Debugging before scaling to Gazebo
+This makes the Gazebo task more realistic and suitable for actor-critic deep reinforcement learning.
 
 ---
 
-## 5. Implemented Algorithms (Version 1)
+## Reward Function
 
-### Dynamic Programming
-- Policy Iteration (with Q-value based improvement)
+The reward function encourages safe and efficient navigation.
+
+Each robot receives:
+
+- Positive reward for reaching the goal
+- Negative reward for obstacle collision
+- Negative reward for robot-robot collision
+- Small time-step penalty
+- Penalty for being close to obstacles
+- Penalty for staying idle
+- Reward shaping based on progress toward the goal
+
+The general reward structure is:
+
+```text
+reward = progress_reward
+       - time_penalty
+       - distance_penalty
+       - obstacle_penalty
+       - idle_penalty
+       + goal_bonus
+       - collision_penalty
+```
+
+---
+
+## Terminal Conditions
+
+A rollout terminates when:
+
+- A robot reaches its goal
+- A robot collides with an obstacle or wall
+- The two robots collide with each other
+- The maximum step limit is reached
+
+If one robot reaches its goal or collides with an obstacle, only that robot is reset.
+
+If both robots collide with each other, both robots are reset.
+
+---
+
+## Method: MADDPG with CTDE
+
+The main method in this project is **Multi-Agent Deep Deterministic Policy Gradient (MADDPG)**.
+
+MADDPG is an actor-critic method designed for multi-agent environments. In this project, each robot is treated as an independent agent with its own actor and critic networks.
+
+The implementation follows the **Centralized Training with Decentralized Execution (CTDE)** framework.
+
+### Centralized Training
+
+During training, each critic receives centralized information:
+
+```text
+critic_input = global_state + joint_actions
+```
+
+The global state is formed by combining the observations of both robots. The joint action contains the actions selected by both robots.
+
+This allows the critic to evaluate the effect of both robots' actions together. This is important because the robots interact with each other, and one robot's behavior can affect the other robot's reward and safety.
+
+### Decentralized Execution
+
+During execution, each actor uses only its own robot's local observation:
+
+```text
+actor_input = local_observation
+```
+
+Each robot independently selects its own action:
+
+```text
+action_i = actor_i(observation_i)
+```
+
+This means that after training, each robot can act without needing access to the full global state or the other robot's complete observation.
+
+### CTDE Summary
+
+In this project:
+
+- Each robot has its own actor network.
+- Each robot has its own critic network.
+- The actor uses only local observations.
+- The critic uses the global state and joint actions during training.
+- The replay buffer stores multi-agent experience.
+- Policies can be executed independently after training.
+
+This CTDE structure is suitable for the Gazebo navigation task because robots interact during learning, but should be able to operate independently during deployment.
+
+---
+
+## Implemented Algorithms
+
+### Version 2: Deep Reinforcement Learning
+
+The main deep reinforcement learning algorithm implemented in Version 2 is:
+
+**MADDPG: Multi-Agent Deep Deterministic Policy Gradient**
+
+MADDPG is used because this project involves:
+
+- Multiple agents
+- Continuous actions
+- Partial observations
+- Interaction between agents
+- Non-stationary learning from each agent's perspective
+- The need for centralized training and decentralized execution
+
+Each robot has its own actor network. The actor receives the robot's local observation and outputs a continuous action.
+
+During training, each robot also has a critic network. The critic receives the global state and joint actions of both robots. This follows the CTDE framework.
+
+---
+
+## Why MADDPG?
+
+MADDPG is suitable for this project because the Gazebo navigation task is a continuous-control multi-agent problem.
+
+Comparison with other algorithms:
+
+- Q-learning is useful for discrete state-action spaces but does not scale well to continuous Gazebo observations.
+- SARSA and Monte Carlo methods are useful for classical RL but are not ideal for high-dimensional LiDAR-based robot control.
+- DQN is mainly designed for discrete action spaces.
+- REINFORCE can suffer from high variance in long-horizon navigation tasks.
+- Vanilla actor-critic can handle continuous actions but does not directly address multi-agent non-stationarity.
+- PPO and SAC are strong alternatives, but MADDPG directly supports multi-agent continuous-control learning using CTDE.
+- TD3 could improve stability, but MADDPG is a direct first choice for multi-agent actor-critic navigation.
+
+Therefore, MADDPG is selected as the main deep reinforcement learning method for the Gazebo-based two-robot navigation task.
+
+---
+
+## Neural Network Architecture
+
+The project uses actor-critic neural networks.
+
+### Actor Network
+
+The actor network receives a robot's local observation and outputs:
+
+```text
+linear_velocity
+angular_velocity
+
+Each robot maintains:
+
+- Actor network
+- Target actor network
+- Critic network
+- Target critic network
+
+Target networks are updated using soft updates to improve training stability.
+
+---
+
+## Replay Buffer
+
+The multi-agent replay buffer stores:
+
+- Robot 1 observation
+- Robot 2 observation
+- Global state
+- Joint action
+- Reward for each robot
+- Next Robot 1 observation
+- Next Robot 2 observation
+- Next global state
+- Done flags
+
+The replay buffer allows off-policy training using mini-batches of previous experience.
+
+The replay buffer is also important for CTDE because it stores the information required for centralized critic updates.
+
+---
+
+## Training Process
+
+The training process follows these steps:
+
+1. Reset both robots in the Gazebo environment.
+2. Get local observations for both robots.
+3. Each actor selects an action using its own local observation.
+4. The joint action is applied to the Gazebo environment.
+5. The environment returns next observations, rewards, and done flags.
+6. The transition is stored in the replay buffer.
+7. A mini-batch is sampled from the replay buffer.
+8. Each critic is updated using the global state and joint actions.
+9. Each actor is updated using the policy gradient from its critic.
+10. Target actor and critic networks are softly updated.
+11. Training logs and model checkpoints are saved.
+
+---
+
+## Training Outputs
+
+Training outputs are saved in the `results/` directory.
+
+```text
+results/
+└── gazebo_maddpg/
+    ├── training_logs/
+    │   └── training_log.csv
+    ├── training_plots/
+    │   └── training_curve.png
+    └── saved_models/
+```
+
+The training log contains:
+
+```text
+episode
+reward_robot1
+reward_robot2
+avg_reward
+```
+
+The training plot shows the reward trend over episodes.
+
+---
+
+## Installation
+
+### Python Dependencies
+
+Install Python dependencies using:
+
+```bash
+pip install -r requirements.txt
+```
+
+Example dependencies include:
+
+```text
+numpy
+torch
+matplotlib
+pandas
+```
+
+### ROS 2 and Gazebo Dependencies
+
+This project also requires:
+
+- ROS 2
+- Gazebo
+- `ros_gz_sim`
+- `ros_gz_bridge`
+- `robot_state_publisher`
+- `xacro`
+
+These packages should be installed through the ROS 2 package manager.
+
+---
+
+## How to Run Dynamic Programming
+
+From the repository root, run Value Iteration:
+
+```bash
+python3 -m src.algorithms.dynamic_programming.run_dp --algo value_iteration
+```
+
+Run Policy Iteration:
+
+```bash
+python3 -m src.algorithms.dynamic_programming.run_dp --algo policy_iteration
+```
+---
+
+## How to Build the ROS 2 Workspace
+
+From the repository root:
+
+```bash
+cd ros2_ws
+colcon build
+source install/setup.bash
+```
+
+---
+
+## How to Launch the Gazebo Environment
+
+After building and sourcing the ROS 2 workspace:
+
+```bash
+ros2 launch edubot_sim edubot_launch.py
+```
+
+This launches the Gazebo world and spawns the multiple EduBot robots.
+
+---
+
+## How to Train MADDPG
+
+Open a second terminal from the repository root and run:
+
+```bash
+python3 -m src.algorithms.deep_rl.train_maddpg
+```
+
+The training script will:
+
+- Initialize the multi-agent Gazebo environment
+- Create multiple MADDPG agents
+- Store transitions in the replay buffer
+- Update actor and critic networks using CTDE
+- Save training logs
+- Save model checkpoints
+- Generate reward plots
+
+---
+
+## Technical Challenges
+
+Major technical challenges encountered during development include:
+
+- Connecting ROS 2 topics with Gazebo topics
+- Bridging velocity, LiDAR, odometry, and pose topics
+- Reading reliable global robot poses from Gazebo
+- Handling LiDAR `inf` and `nan` values
+- Designing reset logic for one robot versus both robots
+- Handling robot-robot collision termination
+- Stabilizing actor-critic training
+- Structuring the CTDE training process
+- Selecting useful reward shaping terms
+
+More details are documented in:
+
+```text
+technical-challenges.md
+```
+
+---
+
+## Current Status
+
+The current project includes:
+
+- GridWorld environment
 - Value Iteration
+- Policy Iteration
+- ROS 2/Gazebo EduBot simulation
+- Two-agent navigation environment
+- LiDAR-based observations
+- Continuous velocity actions
+- Multi-agent replay buffer
+- Actor-Critic neural networks
+- MADDPG training script
+- CTDE-based centralized critic training
+- Decentralized actor execution
+- Training logs
+- Reward plots
+- Model checkpoint saving
 
-### Planned for Version 2
-- Monte Carlo methods
-- TD(0), TD(n), TD(λ)
-- Sarsa (n-step and λ)
-- Q-learning
-- Exploration strategies (epsilon-greedy, etc.)
+---
 
-## 6. Agent Framework
+## Future Work
 
-All agents follow a unified interface:
+Future improvements may include:
+- Adding randomized start and goal positions
+- Improving reward shaping
+- Adding domain randomization
+- Adding LiDAR saliency analysis
+- Comparing single-agent and multi-agent learning
+- Testing sim-to-real transfer on physical robots
 
-```python
-class BaseAgent:
-    def train(self, env):
-        pass
+---
 
-    def evaluate(self, env):
-        pass
+## Acknowledgments
 
-    def select_action(self, state):
-        pass
+This project was developed as part of a Reinforcement Learning course at the University of North Dakota.
+
+The project uses ROS 2, Gazebo, PyTorch, NumPy, and Matplotlib for simulation, learning, numerical computation, and visualization.
+
+ChatGPT was used for code organization, README drafting, debugging guidance, and repository-structure planning.
+
+---
