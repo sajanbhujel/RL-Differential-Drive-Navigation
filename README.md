@@ -2,11 +2,7 @@
 
 ## Overview
 
-This project develops a reinforcement learning framework for autonomous navigation of multiple differential-drive robots in simulation. This project develops a reinforcement learning framework for autonomous navigation of multiple differential-drive robots in a ROS 2/Gazebo-based multi-agent simulation environment using deep reinforcement learning.
-
-The main task is to train multiple EduBot differential-drive robots to navigate toward their assigned goals while avoiding static obstacles, arena walls, and collisions with each other.
-
-The main method used in the Gazebo environment is **MADDPG** under a **Centralized Training with Decentralized Execution (CTDE)** framework. During training, each critic uses global multi-agent information, while during execution each robot selects actions using only its own local observation.
+This project develops a deep reinforcement learning framework for autonomous navigation of multiple differential-drive robots in a ROS 2/Gazebo-based multi-agent simulation environment. The main task is to train multiple EduBot differential-drive robots to navigate toward their assigned goals while avoiding static obstacles, arena walls, and collisions with each other. The main method used in the Gazebo environment is **MADDPG** under a **Centralized Training with Decentralized Execution (CTDE)** framework. During training, each critic uses global multi-agent information, while during execution each robot selects actions using only its own local observation.
 
 This repository is organized as an evolving reinforcement learning capstone project. Version 1 focuses on MDP formulation and Dynamic Programming. Version 2 extends the project to model-free reinforcement learning, replay buffers, neural networks, and multi-agent deep reinforcement learning in Gazebo.
 
