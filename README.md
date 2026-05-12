@@ -12,6 +12,16 @@ This repository is organized as an evolving reinforcement learning capstone proj
 
 ---
 
+## Demo Video
+
+A demonstration video of the trained MADDPG policy in the ROS 2/Gazebo environment is included below:
+
+[Gazebo MADDPG Demo Video](results/videos/gazebo_maddpg_demo.mp4)
+
+The video shows two EduBot differential-drive robots navigating in the Gazebo arena using trained actor policies.
+
+---
+
 ## Project Goals
 
 The goals of this project are to:
