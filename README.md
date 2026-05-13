@@ -253,8 +253,6 @@ For critic training, the global state is formed by concatenating the observation
 
 ## Action Space
 
-### Version 2: Continuous Gazebo Actions
-
 In the Gazebo environment, the action space is continuous:
 
 ```text
