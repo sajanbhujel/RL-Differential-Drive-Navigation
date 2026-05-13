@@ -26,7 +26,7 @@ The training reward curve is shown below. The plot includes the reward trend for
 
 The saliency test result is also shown below. The plot shows which input feature groups had the strongest influence on the trained actor policies.
 
-![MADDPG Saliency Test](results/gazebo_maddpg/saliency_test/group_saliency.png)
+![MADDPG Saliency Test](results/group_saliency.png)
 
 ---
 
