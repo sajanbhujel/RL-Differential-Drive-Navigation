@@ -267,87 +267,37 @@ This makes the Gazebo task more realistic and suitable for actor-critic deep rei
 ---
 ## Reward Function
 
-The reward function encourages safe and efficient navigation.
+The reward function is designed to encourage each robot to move toward its assigned goal while avoiding obstacles, walls, and other robots.
 
-Each robot receives:
-
-- Positive reward for reaching the goal
-- Negative reward for obstacle collision
-- Negative reward for robot-robot collision
-- Small time-step penalty
-- Penalty for being close to obstacles
-- Penalty for staying idle
-- Reward shaping based on progress toward the goal
-
-For robot \(i\), the Euclidean distance to the goal is:
+For robot \(i\), the distance to the goal is:
 
 $$
-d_i(t) =
-\left\|
-\mathbf{p}_i(t) - \mathbf{g}_i
-\right\|_2
+d_i(t)=\|\mathbf{p}_i(t)-\mathbf{g}_i\|_2
 $$
 
-where \(\mathbf{p}_i(t) = [x_i(t), y_i(t)]^T\) is the robot position and \(\mathbf{g}_i\) is the goal position.
-
-The progress toward the goal is defined as:
+The progress toward the goal is:
 
 $$
-\Delta d_i(t) = d_i(t-1) - d_i(t)
+\Delta d_i(t)=d_i(t-1)-d_i(t)
 $$
 
-If \(\Delta d_i(t) > 0\), the robot moved closer to the goal. If \(\Delta d_i(t) < 0\), the robot moved away from the goal.
-
-The reward for each robot is computed as:
+The reward used in the Gazebo environment is:
 
 $$
-r_i(t) =
+r_i(t)=
 -0.01
-+ 10.0\Delta d_i(t)
-- 0.05d_i(t)
-- 0.2\mathbb{I}_{near}
-- 0.05\mathbb{I}_{idle}
-+ 1000\mathbb{I}_{goal}
-- 100\mathbb{I}_{obs}
-- 100\mathbb{I}_{robot}
-- 50\mathbb{I}_{max}
++10\Delta d_i(t)
+-0.05d_i(t)
+-0.2I_{near}
+-0.05I_{idle}
++1000I_{goal}
+-100I_{collision}
+-50I_{max}
 $$
 
-where:
+where \(I_{near}\) indicates that the robot is close to an obstacle, \(I_{idle}\) indicates that the robot is almost stopped, \(I_{goal}\) indicates that the robot reaches its goal, \(I_{collision}\) indicates collision with an obstacle or another robot, and \(I_{max}\) indicates that the maximum step limit is reached.
 
-- \(\mathbb{I}_{near}=1\) if the robot is close to an obstacle
-- \(\mathbb{I}_{idle}=1\) if the robot is nearly stopped
-- \(\mathbb{I}_{goal}=1\) if the robot reaches the goal
-- \(\mathbb{I}_{obs}=1\) if the robot collides with an obstacle or wall
-- \(\mathbb{I}_{robot}=1\) if the robot collides with another robot
-- \(\mathbb{I}_{max}=1\) if the robot reaches the maximum step limit
-
-The general reward structure is:
-
-```text
-reward = progress_reward
-       - time_penalty
-       - distance_penalty
-       - obstacle_penalty
-       - idle_penalty
-       + goal_bonus
-       - collision_penalty
-       - max_step_penalty
-
-## Terminal Conditions
-
-A rollout terminates when:
-
-- A robot reaches its goal
-- A robot collides with an obstacle or wall
-- The two robots collide with each other
-- The maximum step limit is reached
-
-If one robot reaches its goal or collides with an obstacle, only that robot is reset.
-
-If both robots collide with each other, both robots are reset.
-
----
+This reward gives a positive value for moving closer to the goal and reaching the goal, while penalizing collisions, idling, and long inefficient paths.
 
 ## Method: MADDPG with CTDE
 
