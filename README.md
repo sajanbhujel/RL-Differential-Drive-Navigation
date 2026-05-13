@@ -356,9 +356,7 @@ This CTDE structure is suitable for the Gazebo navigation task because robots in
 
 ## Implemented Algorithms
 
-### Version 2: Deep Reinforcement Learning
-
-The main deep reinforcement learning algorithm implemented in Version 2 is:
+The main deep reinforcement learning algorithm implemented is:
 
 **MADDPG: Multi-Agent Deep Deterministic Policy Gradient**
 
