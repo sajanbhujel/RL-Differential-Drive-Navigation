@@ -321,14 +321,6 @@ $$s = [o_1, o_2, \dots, o_N]$$
 
 $$a = [a_1, a_2, \dots, a_N]$$
 
-For the four-robot system used in Version 3:
-
-$$N = 4$$
-
-$$s = [o_1, o_2, o_3, o_4]$$
-
-$$a = [a_1, a_2, a_3, a_4]$$
-
 ### Centralized Training
 
 During training, each critic receives the global state and joint actions:
