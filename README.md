@@ -198,7 +198,7 @@ The linear velocity controls forward motion, while the angular velocity controls
 
 The Gazebo world includes:
 
-- A bounded 2D arena
+- A bounded arena
 - Static walls
 - Cylindrical obstacles
 - Box obstacles
