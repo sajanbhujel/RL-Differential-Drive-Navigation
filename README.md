@@ -309,17 +309,17 @@ The main method in this project is **Multi-Agent Deep Deterministic Policy Gradi
 
 MADDPG is an actor-critic method for multi-agent continuous-control problems. In this project, each robot has its own actor and critic network. The implementation follows **Centralized Training with Decentralized Execution (CTDE)**.
 
-For robot \(i\), the actor selects a continuous action from its local observation:
+For robot $i$, the actor selects a continuous action from its local observation:
 
 $$a_i = \mu_i(o_i)$$
 
-where \(o_i\) is the local observation and \(a_i=[v_i,\omega_i]\) contains the linear and angular velocity commands.
+where $o_i$ is the local observation and $a_i = [v_i, \omega_i]$ contains the linear and angular velocity commands.
 
-For \(N\) robots, the centralized state and joint action are:
+For $N$ robots, the centralized state and joint action are:
 
 $$s = [o_1, o_2, \dots, o_N]$$
 
-$$\mathbf{a} = [a_1, a_2, \dots, a_N]$$
+$$a = [a_1, a_2, \dots, a_N]$$
 
 For the four-robot system used in Version 3:
 
@@ -327,7 +327,7 @@ $$N = 4$$
 
 $$s = [o_1, o_2, o_3, o_4]$$
 
-$$\mathbf{a} = [a_1, a_2, a_3, a_4]$$
+$$a = [a_1, a_2, a_3, a_4]$$
 
 ### Centralized Training
 
@@ -337,7 +337,7 @@ During training, each critic receives the global state and joint actions:
 critic_input = global_state + joint_actions
 ```
 
-The critic for robot \(i\) estimates:
+The critic for robot $i$ estimates:
 
 $$Q_i(s, a_1, a_2, \dots, a_N)$$
 
@@ -345,7 +345,7 @@ The target value used to train the critic is:
 
 $$y_i = r_i + \gamma(1-d_i)Q_i^{target}(s', a_1', a_2', \dots, a_N')$$
 
-where \(r_i\) is the reward, \(\gamma\) is the discount factor, \(d_i\) is the done flag, and the next actions are produced by the target actors:
+where $r_i$ is the reward, $\gamma$ is the discount factor, $d_i$ is the done flag, and the next actions are produced by the target actors:
 
 $$a_j' = \mu_j^{target}(o_j')$$
 
