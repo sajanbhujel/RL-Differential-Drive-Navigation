@@ -76,7 +76,23 @@ The main additions in Version 2 are:
 - Model checkpoint organization
 - Technical challenge documentation
 
-The main deep reinforcement learning algorithm implemented in Version 2 is:
+---
+
+## Version 3 Scope
+
+Version 3 extends the Version 2 MADDPG framework from two robots to a four-agent reinforcement learning system in ROS 2/Gazebo.
+
+The main additions in Version 3 are:
+
+- Expanded the environment from two EduBot robots to four independent agents.
+- Generalized the MADDPG training, replay buffer, testing, and reward logging for four robots.
+- Updated start/goal positions, robot-robot collision handling, and Gazebo global pose tracking.
+- Tuned the reward function and training hyperparameters to improve goal-directed navigation.
+- Added gradient-based saliency analysis to interpret which state features influence the trained policies.
+
+The main focus of Version 3 is to evaluate whether the MADDPG-based multi-agent reinforcement learning framework can scale from two robots to four robots while maintaining centralized training and decentralized execution.
+
+The main deep reinforcement learning algorithm implemented is:
 
 **MADDPG: Multi-Agent Deep Deterministic Policy Gradient**
 
