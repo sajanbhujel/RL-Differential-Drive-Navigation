@@ -640,8 +640,6 @@ Future improvements may include:
 
 ## Acknowledgments
 
-This project was developed as part of a Reinforcement Learning course at the University of North Dakota.
-
 The project uses ROS 2, Gazebo, PyTorch, NumPy, and Matplotlib for simulation, learning, numerical computation, and visualization.
 
 ChatGPT was used for code organization, README drafting, debugging guidance, and repository-structure planning.
