@@ -267,7 +267,7 @@ This makes the Gazebo task more realistic and suitable for actor-critic deep rei
 ---
 ## Reward Function
 
-The reward function is designed to encourage each robot to move toward its assigned goal while avoiding obstacles, walls, and other robots.
+The reward function encourages each robot to move toward its assigned goal while avoiding obstacles, walls, and other robots.
 
 For robot \(i\), the distance to the goal is:
 
@@ -288,16 +288,22 @@ r_i(t)=
 -0.01
 +10\Delta d_i(t)
 -0.05d_i(t)
--0.2I_{near}
--0.05I_{idle}
-+1000I_{goal}
--100I_{collision}
--50I_{max}
+-0.2I_{\text{near}}
+-0.05I_{\text{idle}}
++1000I_{\text{goal}}
+-100I_{\text{collision}}
+-50I_{\text{max}}
 $$
 
-where \(I_{near}\) indicates that the robot is close to an obstacle, \(I_{idle}\) indicates that the robot is almost stopped, \(I_{goal}\) indicates that the robot reaches its goal, \(I_{collision}\) indicates collision with an obstacle or another robot, and \(I_{max}\) indicates that the maximum step limit is reached.
+where:
 
-This reward gives a positive value for moving closer to the goal and reaching the goal, while penalizing collisions, idling, and long inefficient paths.
+- `I_near = 1` if the robot is close to an obstacle, otherwise `0`
+- `I_idle = 1` if the robot is almost stopped, otherwise `0`
+- `I_goal = 1` if the robot reaches its goal, otherwise `0`
+- `I_collision = 1` if the robot collides with an obstacle or another robot, otherwise `0`
+- `I_max = 1` if the maximum step limit is reached, otherwise `0`
+
+This reward gives a positive value for moving closer to the goal and reaching the goal, while penalizing collisions, idling, and inefficient paths.
 
 ## Method: MADDPG with CTDE
 
