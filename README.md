@@ -266,6 +266,8 @@ This makes the Gazebo task more realistic and suitable for actor-critic deep rei
 
 ---
 
+
+```markdown
 ## Reward Function
 
 The reward function encourages safe and efficient navigation.
@@ -280,6 +282,49 @@ Each robot receives:
 - Penalty for staying idle
 - Reward shaping based on progress toward the goal
 
+For robot \(i\), the Euclidean distance to the goal is:
+
+$$
+d_i(t) =
+\left\|
+\mathbf{p}_i(t) - \mathbf{g}_i
+\right\|_2
+$$
+
+where \(\mathbf{p}_i(t) = [x_i(t), y_i(t)]^T\) is the robot position and \(\mathbf{g}_i\) is the goal position.
+
+The progress toward the goal is defined as:
+
+$$
+\Delta d_i(t) = d_i(t-1) - d_i(t)
+$$
+
+If \(\Delta d_i(t) > 0\), the robot moved closer to the goal. If \(\Delta d_i(t) < 0\), the robot moved away from the goal.
+
+The reward for each robot is computed as:
+
+$$
+r_i(t) =
+-0.01
++ 10.0\Delta d_i(t)
+- 0.05d_i(t)
+- 0.2\mathbb{I}_{near}
+- 0.05\mathbb{I}_{idle}
++ 1000\mathbb{I}_{goal}
+- 100\mathbb{I}_{obs}
+- 100\mathbb{I}_{robot}
+- 50\mathbb{I}_{max}
+$$
+
+where:
+
+- \(\mathbb{I}_{near}=1\) if the robot is close to an obstacle
+- \(\mathbb{I}_{idle}=1\) if the robot is nearly stopped
+- \(\mathbb{I}_{goal}=1\) if the robot reaches the goal
+- \(\mathbb{I}_{obs}=1\) if the robot collides with an obstacle or wall
+- \(\mathbb{I}_{robot}=1\) if the robot collides with another robot
+- \(\mathbb{I}_{max}=1\) if the robot reaches the maximum step limit
+
 The general reward structure is:
 
 ```text
@@ -290,9 +335,7 @@ reward = progress_reward
        - idle_penalty
        + goal_bonus
        - collision_penalty
-```
-
----
+       - max_step_penalty
 
 ## Terminal Conditions
 
