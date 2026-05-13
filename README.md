@@ -311,35 +311,23 @@ MADDPG is an actor-critic method for multi-agent continuous-control problems. In
 
 For robot \(i\), the actor selects a continuous action from its local observation:
 
-$$
-a_i = \mu_i(o_i)
-$$
+$$a_i = \mu_i(o_i)$$
 
 where \(o_i\) is the local observation and \(a_i=[v_i,\omega_i]\) contains the linear and angular velocity commands.
 
 For \(N\) robots, the centralized state and joint action are:
 
-$$
-s = [o_1,o_2,\dots,o_N]
-$$
+$$s = [o_1, o_2, \dots, o_N]$$
 
-$$
-\mathbf{a} = [a_1,a_2,\dots,a_N]
-$$
+$$\mathbf{a} = [a_1, a_2, \dots, a_N]$$
 
 For the four-robot system used in Version 3:
 
-$$
-N=4
-$$
+$$N = 4$$
 
-$$
-s = [o_1,o_2,o_3,o_4]
-$$
+$$s = [o_1, o_2, o_3, o_4]$$
 
-$$
-\mathbf{a} = [a_1,a_2,a_3,a_4]
-$$
+$$\mathbf{a} = [a_1, a_2, a_3, a_4]$$
 
 ### Centralized Training
 
@@ -351,73 +339,27 @@ critic_input = global_state + joint_actions
 
 The critic for robot \(i\) estimates:
 
-$$
-Q_i(s,a_1,a_2,\dots,a_N)
-$$
+$$Q_i(s, a_1, a_2, \dots, a_N)$$
 
 The target value used to train the critic is:
 
-$$
-y_i =
-r_i +
-\gamma(1-d_i)
-Q_i^{target}
-\left(
-s',
-a_1',
-a_2',
-\dots,
-a_N'
-\right)
-$$
+$$y_i = r_i + \gamma(1-d_i)Q_i^{target}(s', a_1', a_2', \dots, a_N')$$
 
 where \(r_i\) is the reward, \(\gamma\) is the discount factor, \(d_i\) is the done flag, and the next actions are produced by the target actors:
 
-$$
-a_j' = \mu_j^{target}(o_j')
-$$
+$$a_j' = \mu_j^{target}(o_j')$$
 
 The critic loss is:
 
-$$
-L_i =
-\frac{1}{B}
-\sum_{b=1}^{B}
-\left(
-Q_i(s^b,a_1^b,\dots,a_N^b)
--
-y_i^b
-\right)^2
-$$
+$$L_i = \frac{1}{B}\sum_{b=1}^{B}\left(Q_i(s^b, a_1^b, \dots, a_N^b) - y_i^b\right)^2$$
 
 The actor is updated by maximizing the critic value. In the implementation, this is done by minimizing the negative critic value:
 
-$$
-L_{\mu_i}
-=
--
-\frac{1}{B}
-\sum_{b=1}^{B}
-Q_i
-\left(
-s^b,
-a_1^b,
-\dots,
-\mu_i(o_i^b),
-\dots,
-a_N^b
-\right)
-$$
+$$L_{\mu_i} = -\frac{1}{B}\sum_{b=1}^{B}Q_i(s^b, a_1^b, \dots, \mu_i(o_i^b), \dots, a_N^b)$$
 
 The target networks are updated using soft updates:
 
-$$
-\theta^{target}
-\leftarrow
-\tau\theta
-+
-(1-\tau)\theta^{target}
-$$
+$$\theta^{target} \leftarrow \tau\theta + (1-\tau)\theta^{target}$$
 
 ### Decentralized Execution
 
@@ -429,9 +371,7 @@ actor_input = local_observation
 
 Each robot independently selects its action:
 
-$$
-a_i = \mu_i(o_i)
-$$
+$$a_i = \mu_i(o_i)$$
 
 This means that after training, each robot can act without access to the full global state or the other robots' complete observations.
 
