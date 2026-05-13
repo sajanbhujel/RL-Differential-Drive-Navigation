@@ -265,9 +265,6 @@ angular velocity in [-max_angular, max_angular]
 This makes the Gazebo task more realistic and suitable for actor-critic deep reinforcement learning.
 
 ---
-
-
-```markdown
 ## Reward Function
 
 The reward function encourages safe and efficient navigation.
