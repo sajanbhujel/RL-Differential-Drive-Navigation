@@ -307,21 +307,117 @@ This reward gives a positive value for moving closer to the goal and reaching th
 
 The main method in this project is **Multi-Agent Deep Deterministic Policy Gradient (MADDPG)**.
 
-MADDPG is an actor-critic method designed for multi-agent environments. In this project, each robot is treated as an independent agent with its own actor and critic networks.
+MADDPG is an actor-critic method for multi-agent continuous-control problems. In this project, each robot has its own actor and critic network. The implementation follows **Centralized Training with Decentralized Execution (CTDE)**.
 
-The implementation follows the **Centralized Training with Decentralized Execution (CTDE)** framework.
+For robot \(i\), the actor selects a continuous action from its local observation:
+
+$$
+a_i = \mu_i(o_i)
+$$
+
+where \(o_i\) is the local observation and \(a_i=[v_i,\omega_i]\) contains the linear and angular velocity commands.
+
+For \(N\) robots, the centralized state and joint action are:
+
+$$
+s = [o_1,o_2,\dots,o_N]
+$$
+
+$$
+\mathbf{a} = [a_1,a_2,\dots,a_N]
+$$
+
+For the four-robot system used in Version 3:
+
+$$
+N=4
+$$
+
+$$
+s = [o_1,o_2,o_3,o_4]
+$$
+
+$$
+\mathbf{a} = [a_1,a_2,a_3,a_4]
+$$
 
 ### Centralized Training
 
-During training, each critic receives centralized information:
+During training, each critic receives the global state and joint actions:
 
 ```text
 critic_input = global_state + joint_actions
 ```
 
-The global state is formed by combining the observations of both robots. The joint action contains the actions selected by both robots.
+The critic for robot \(i\) estimates:
 
-This allows the critic to evaluate the effect of both robots' actions together. This is important because the robots interact with each other, and one robot's behavior can affect the other robot's reward and safety.
+$$
+Q_i(s,a_1,a_2,\dots,a_N)
+$$
+
+The target value used to train the critic is:
+
+$$
+y_i =
+r_i +
+\gamma(1-d_i)
+Q_i^{target}
+\left(
+s',
+a_1',
+a_2',
+\dots,
+a_N'
+\right)
+$$
+
+where \(r_i\) is the reward, \(\gamma\) is the discount factor, \(d_i\) is the done flag, and the next actions are produced by the target actors:
+
+$$
+a_j' = \mu_j^{target}(o_j')
+$$
+
+The critic loss is:
+
+$$
+L_i =
+\frac{1}{B}
+\sum_{b=1}^{B}
+\left(
+Q_i(s^b,a_1^b,\dots,a_N^b)
+-
+y_i^b
+\right)^2
+$$
+
+The actor is updated by maximizing the critic value. In the implementation, this is done by minimizing the negative critic value:
+
+$$
+L_{\mu_i}
+=
+-
+\frac{1}{B}
+\sum_{b=1}^{B}
+Q_i
+\left(
+s^b,
+a_1^b,
+\dots,
+\mu_i(o_i^b),
+\dots,
+a_N^b
+\right)
+$$
+
+The target networks are updated using soft updates:
+
+$$
+\theta^{target}
+\leftarrow
+\tau\theta
++
+(1-\tau)\theta^{target}
+$$
 
 ### Decentralized Execution
 
@@ -331,13 +427,13 @@ During execution, each actor uses only its own robot's local observation:
 actor_input = local_observation
 ```
 
-Each robot independently selects its own action:
+Each robot independently selects its action:
 
-```text
-action_i = actor_i(observation_i)
-```
+$$
+a_i = \mu_i(o_i)
+$$
 
-This means that after training, each robot can act without needing access to the full global state or the other robot's complete observation.
+This means that after training, each robot can act without access to the full global state or the other robots' complete observations.
 
 ### CTDE Summary
 
@@ -350,7 +446,7 @@ In this project:
 - The replay buffer stores multi-agent experience.
 - Policies can be executed independently after training.
 
-This CTDE structure is suitable for the Gazebo navigation task because robots interact during learning, but should be able to operate independently during deployment.
+This CTDE structure is suitable for the Gazebo navigation task because robots interact during learning, but each robot should operate independently during deployment.
 
 ---
 
@@ -622,10 +718,7 @@ The current project includes:
 
 Future improvements may include:
 - Adding randomized start and goal positions
-- Improving reward shaping
 - Adding domain randomization
-- Adding LiDAR saliency analysis
-- Comparing single-agent and multi-agent learning
 - Testing sim-to-real transfer on physical robots
 
 ---
