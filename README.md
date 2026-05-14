@@ -484,8 +484,8 @@ The replay buffer is also essential for the CTDE framework because it stores the
 
 The MADDPG training process follows these steps:
 
-1. Reset both robots in the Gazebo simulation environment.
-2. Obtain local observations for both robots.
+1. Reset all robots in the Gazebo simulation environment.
+2. Obtain local observations for all robots.
 3. Each actor selects an action using its own local observation.
 4. The joint action is applied to the environment.
 5. The environment returns:
