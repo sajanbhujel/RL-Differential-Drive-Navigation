@@ -93,7 +93,7 @@ def test():
 
         agents.append(agent)
 
-    test_episodes = 10
+    test_episodes = 800
 
     total_test_rewards = np.zeros(n_agents, dtype=np.float32)
     total_done_counts = np.zeros(n_agents, dtype=np.int32)
