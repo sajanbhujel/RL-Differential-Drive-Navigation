@@ -118,7 +118,6 @@ RL-ROBUST-NAVIGATION/
 ├── README.md
 ├── requirements.txt
 ├── technical-challenges.md
-├── .gitignore
 │
 ├── results/
 │   ├── grid_world/
