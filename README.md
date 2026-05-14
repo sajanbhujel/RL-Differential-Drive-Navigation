@@ -8,11 +8,9 @@ This repository is organized as an evolving reinforcement learning capstone proj
 
 ---
 
-## Demo Video
+## Demo and Training Results
 
-## Demo and Training Result
-
-The following demos show the trained MADDPG policy running in the ROS 2/Gazebo environment. The EduBot differential-drive robots navigate in the Gazebo arena using the trained actor policies.
+The following demos show the trained MADDPG policies running in the ROS 2/Gazebo environment. The EduBot differential-drive robots navigate in the Gazebo arena using the trained actor policies while avoiding obstacles and other robots.
 
 ### Two-Robot Demo
 
@@ -22,12 +20,19 @@ The following demos show the trained MADDPG policy running in the ROS 2/Gazebo e
 
 ![Gazebo MADDPG Four-Robot Demo](results/videos/4_robot.gif)
 
+---
 
-The training reward curve is shown below. The plot includes the reward trend for both robots and the average reward during MADDPG training.
+## Training Reward Curve
+
+The training reward curve is shown below. The plot includes the reward trends for the robots and the average reward during MADDPG training.
 
 ![MADDPG Training Curve](results/gazebo_maddpg/training_plots/training_curve.png)
 
-The saliency test result is also shown below. The plot shows which input feature groups had the strongest influence on the trained actor policies.
+---
+
+## Saliency Analysis
+
+The saliency analysis result is shown below. The plot illustrates which input feature groups had the strongest influence on the trained actor policies.
 
 ![MADDPG Saliency Test](results/group_saliency.png)
 
