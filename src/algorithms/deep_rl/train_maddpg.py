@@ -1,20 +1,20 @@
 #!/usr/bin/env python3
 
 import os
+import csv
 import copy
 import numpy as np
+import matplotlib.pyplot as plt
 
 import torch
 import torch.nn as nn
 import torch.optim as optim
-import csv
-import matplotlib.pyplot as plt
 
 import rclpy
 
-from src.algorithms.deep_rl.networks import Actor, Critic, soft_update
-from src.algorithms.deep_rl.replay_buffer import MultiAgentReplayBuffer
-from src.environments.multiagent_gazebo_env import MultiAgentGazeboEnv
+from networks import Actor, Critic, soft_update
+from replay_buffer import MultiAgentReplayBuffer
+from multiagent_env import MultiAgentGazeboEnv
 
 
 class MADDPGAgent:
@@ -72,14 +72,17 @@ class MADDPGAgent:
 def update_maddpg(agents, replay_buffer, batch_size, device):
     batch = replay_buffer.sample(batch_size, device)
 
+    n_agents = len(agents)
+    action_dim = agents[0].action_dim
+
     obs = [
-        batch["obs1"],
-        batch["obs2"],
+        batch["obs"][:, i, :]
+        for i in range(n_agents)
     ]
 
     next_obs = [
-        batch["next_obs1"],
-        batch["next_obs2"],
+        batch["next_obs"][:, i, :]
+        for i in range(n_agents)
     ]
 
     global_state = batch["global_state"]
@@ -89,14 +92,11 @@ def update_maddpg(agents, replay_buffer, batch_size, device):
     rewards = batch["rewards"]
     dones = batch["dones"]
 
-    action_dim = agents[0].action_dim
-
     with torch.no_grad():
         next_actions = []
 
         for i, agent in enumerate(agents):
-            next_action_i = agent.actor_target(next_obs[i])
-            next_actions.append(next_action_i)
+            next_actions.append(agent.actor_target(next_obs[i]))
 
         next_actions = torch.cat(next_actions, dim=1)
 
@@ -120,9 +120,7 @@ def update_maddpg(agents, replay_buffer, batch_size, device):
 
         for j, other_agent in enumerate(agents):
             if j == i:
-                current_action_j = other_agent.actor(obs[j])
-                current_actions.append(current_action_j)
-
+                current_actions.append(other_agent.actor(obs[j]))
             else:
                 start = j * action_dim
                 end = start + action_dim
@@ -152,13 +150,7 @@ def moving_average(values, window=20):
     return np.convolve(values, kernel, mode="same")
 
 
-def plot_training_curve(
-    episode_list,
-    reward_robot1_list,
-    reward_robot2_list,
-    avg_reward_list,
-    plot_dir,
-):
+def plot_training_curve(episode_list, avg_reward_list, plot_dir):
     if len(episode_list) == 0:
         print("No training data to plot.")
         return
@@ -167,16 +159,9 @@ def plot_training_curve(
 
     plt.plot(
         episode_list,
-        reward_robot1_list,
-        label="Robot 1 Reward",
-        alpha=0.35,
-    )
-
-    plt.plot(
-        episode_list,
-        reward_robot2_list,
-        label="Robot 2 Reward",
-        alpha=0.35,
+        avg_reward_list,
+        label="Average Reward",
+        alpha=0.4,
     )
 
     plt.plot(
@@ -187,8 +172,8 @@ def plot_training_curve(
     )
 
     plt.xlabel("Episode")
-    plt.ylabel("Episode Reward")
-    plt.title("Training Curve")
+    plt.ylabel("Average Episode Reward")
+    plt.title("4-Agent MADDPG Training Curve")
     plt.grid(True)
     plt.legend()
     plt.tight_layout()
@@ -208,11 +193,11 @@ def train():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print("Using device:", device)
 
-    obs1, obs2, global_state = env.reset()
+    obs_list, global_state = env.reset()
 
-    obs_dim = obs1.shape[0]
+    obs_dim = obs_list[0].shape[0]
     action_dim = 2
-    n_agents = 2
+    n_agents = env.n_agents
 
     global_state_dim = obs_dim * n_agents
     total_action_dim = action_dim * n_agents
@@ -225,33 +210,24 @@ def train():
         dtype=np.float32,
     )
 
-    agent1 = MADDPGAgent(
-        agent_id=0,
-        obs_dim=obs_dim,
-        action_dim=action_dim,
-        global_state_dim=global_state_dim,
-        total_action_dim=total_action_dim,
-        max_action=max_action,
-        device=device,
-    )
+    agents = []
 
-    agent2 = MADDPGAgent(
-        agent_id=1,
-        obs_dim=obs_dim,
-        action_dim=action_dim,
-        global_state_dim=global_state_dim,
-        total_action_dim=total_action_dim,
-        max_action=max_action,
-        device=device,
-    )
+    for i in range(n_agents):
+        agent = MADDPGAgent(
+            agent_id=i,
+            obs_dim=obs_dim,
+            action_dim=action_dim,
+            global_state_dim=global_state_dim,
+            total_action_dim=total_action_dim,
+            max_action=max_action,
+            device=device,
+        )
 
-    agents = [
-        agent1,
-        agent2,
-    ]
+        agents.append(agent)
 
     replay_buffer = MultiAgentReplayBuffer(
         max_size=200000,
+        n_agents=n_agents,
         obs_dim=obs_dim,
         global_state_dim=global_state_dim,
         action_dim=action_dim,
@@ -264,16 +240,15 @@ def train():
 
     total_steps = 0
 
-    noise_std = 0.30
+    noise_std = 0.20
     noise_decay = 0.995
     min_noise = 0.05
 
     save_dir = "saved_models"
-    os.makedirs(save_dir, exist_ok=True)
-
     log_dir = "training_logs"
     plot_dir = "training_plots"
 
+    os.makedirs(save_dir, exist_ok=True)
     os.makedirs(log_dir, exist_ok=True)
     os.makedirs(plot_dir, exist_ok=True)
 
@@ -281,67 +256,66 @@ def train():
 
     with open(log_csv_path, mode="w", newline="") as file:
         writer = csv.writer(file)
-        writer.writerow([
-            "episode",
-            "reward_robot1",
-            "reward_robot2",
-            "avg_reward",
-        ])
+
+        header = ["episode"]
+
+        for i in range(n_agents):
+            header.append(f"reward_robot{i + 1}")
+
+        header.append("avg_reward")
+
+        for i in range(n_agents):
+            header.append(f"done_robot{i + 1}")
+
+        header.append("noise_std")
+
+        writer.writerow(header)
 
     episode_list = []
-    reward_robot1_list = []
-    reward_robot2_list = []
     avg_reward_list = []
 
     try:
         for ep in range(episodes):
-            obs1, obs2, global_state = env.reset()
+            obs_list, global_state = env.reset()
 
-            ep_rewards = np.zeros(2, dtype=np.float32)
-            ep_dones = np.zeros(2, dtype=np.int32)
+            ep_rewards = np.zeros(n_agents, dtype=np.float32)
+            ep_dones = np.zeros(n_agents, dtype=np.int32)
 
             for step in range(env.max_steps):
                 total_steps += 1
 
-                if total_steps < warmup_steps:
-                    a1 = np.array(
-                        [
-                            np.random.uniform(0.0, env.max_linear),
-                            np.random.uniform(-env.max_angular, env.max_angular),
-                        ],
-                        dtype=np.float32,
-                    )
+                action_list = []
 
-                    a2 = np.array(
-                        [
-                            np.random.uniform(0.0, env.max_linear),
-                            np.random.uniform(-env.max_angular, env.max_angular),
-                        ],
-                        dtype=np.float32,
-                    )
+                for i in range(n_agents):
+                    if total_steps < warmup_steps:
+                        action = np.array(
+                            [
+                                np.random.uniform(0.10, env.max_linear),
+                                np.random.uniform(-0.4, 0.4),
+                            ],
+                            dtype=np.float32,
+                        )
 
-                else:
-                    a1 = agent1.select_action(obs1, noise_std)
-                    a2 = agent2.select_action(obs2, noise_std)
+                    else:
+                        action = agents[i].select_action(obs_list[i], noise_std)
 
-                actions = np.concatenate([a1, a2]).astype(np.float32)
+                    action_list.append(action)
 
-                next_obs1, next_obs2, next_global_state, rewards, dones = env.step(actions)
+                actions = np.concatenate(action_list).astype(np.float32)
+
+                next_obs_list, next_global_state, rewards, dones = env.step(actions)
 
                 replay_buffer.add(
-                    obs1,
-                    obs2,
+                    obs_list,
                     global_state,
                     actions,
                     rewards,
-                    next_obs1,
-                    next_obs2,
+                    next_obs_list,
                     next_global_state,
                     dones,
                 )
 
-                obs1 = next_obs1
-                obs2 = next_obs2
+                obs_list = next_obs_list
                 global_state = next_global_state
 
                 ep_rewards += rewards
@@ -357,52 +331,51 @@ def train():
 
             noise_std = max(min_noise, noise_std * noise_decay)
 
-            print(
-                f"Episode {ep + 1:04d} | "
-                f"R1: {ep_rewards[0]:8.2f} | "
-                f"R2: {ep_rewards[1]:8.2f} | "
-                f"Done R1: {ep_dones[0]:3d} | "
-                f"Done R2: {ep_dones[1]:3d} | "
-                f"Steps: {step + 1:4d} | "
-                f"Noise: {noise_std:.3f}"
-            )
-
-            avg_reward = float((ep_rewards[0] + ep_rewards[1]) / 2.0)
+            avg_reward = float(np.mean(ep_rewards))
 
             episode_list.append(ep + 1)
-            reward_robot1_list.append(float(ep_rewards[0]))
-            reward_robot2_list.append(float(ep_rewards[1]))
             avg_reward_list.append(avg_reward)
+
+            print_text = f"Episode {ep + 1:04d} | "
+
+            for i in range(n_agents):
+                print_text += f"R{i + 1}: {ep_rewards[i]:8.2f} | "
+
+            for i in range(n_agents):
+                print_text += f"D{i + 1}: {ep_dones[i]:3d} | "
+
+            print_text += f"Steps: {step + 1:4d} | Noise: {noise_std:.3f}"
+
+            print(print_text)
 
             with open(log_csv_path, mode="a", newline="") as file:
                 writer = csv.writer(file)
-                writer.writerow([
-                    ep + 1,
-                    float(ep_rewards[0]),
-                    float(ep_rewards[1]),
-                    avg_reward,
-                ])
+
+                row = [ep + 1]
+
+                for i in range(n_agents):
+                    row.append(float(ep_rewards[i]))
+
+                row.append(avg_reward)
+
+                for i in range(n_agents):
+                    row.append(int(ep_dones[i]))
+
+                row.append(float(noise_std))
+
+                writer.writerow(row)
 
             if (ep + 1) % 50 == 0:
-                torch.save(
-                    agent1.actor.state_dict(),
-                    f"{save_dir}/agent1_actor_ep{ep + 1}.pth",
-                )
+                for i, agent in enumerate(agents):
+                    torch.save(
+                        agent.actor.state_dict(),
+                        f"{save_dir}/agent{i + 1}_actor_ep{ep + 1}.pth",
+                    )
 
-                torch.save(
-                    agent2.actor.state_dict(),
-                    f"{save_dir}/agent2_actor_ep{ep + 1}.pth",
-                )
-
-                torch.save(
-                    agent1.critic.state_dict(),
-                    f"{save_dir}/agent1_critic_ep{ep + 1}.pth",
-                )
-
-                torch.save(
-                    agent2.critic.state_dict(),
-                    f"{save_dir}/agent2_critic_ep{ep + 1}.pth",
-                )
+                    torch.save(
+                        agent.critic.state_dict(),
+                        f"{save_dir}/agent{i + 1}_critic_ep{ep + 1}.pth",
+                    )
 
     except KeyboardInterrupt:
         print("Training interrupted by user.")
@@ -410,8 +383,6 @@ def train():
     finally:
         plot_training_curve(
             episode_list,
-            reward_robot1_list,
-            reward_robot2_list,
             avg_reward_list,
             plot_dir,
         )
