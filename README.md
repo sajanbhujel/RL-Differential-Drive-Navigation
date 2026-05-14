@@ -432,14 +432,20 @@ Therefore, MADDPG is selected as the main deep reinforcement learning method for
 
 ## Neural Network Architecture
 
-The project uses actor-critic neural networks.
+The project uses an actor-critic neural network architecture based on MADDPG.
 
 ### Actor Network
 
-The actor network receives a robot's local observation and outputs:
+The actor network receives each robot's local observation and outputs continuous control commands:
 
-linear_velocity
-angular_velocity
+- Linear velocity
+- Angular velocity
+
+### Critic Network
+
+The critic network evaluates the quality of selected actions during training using centralized information from all agents.
+
+### Networks Maintained per Robot
 
 Each robot maintains:
 
@@ -448,13 +454,15 @@ Each robot maintains:
 - Critic network
 - Target critic network
 
-Target networks are updated using soft updates to improve training stability.
+Target networks are updated using soft updates to improve training stability and reduce oscillations during learning.
 
 ---
 
 ## Replay Buffer
 
-The multi-agent replay buffer stores:
+The multi-agent replay buffer stores training experiences collected during interaction with the Gazebo environment.
+
+Stored information includes:
 
 - Robot 1 observation
 - Robot 2 observation
@@ -466,33 +474,38 @@ The multi-agent replay buffer stores:
 - Next global state
 - Done flags
 
-The replay buffer allows off-policy training using mini-batches of previous experience.
+The replay buffer enables off-policy learning by randomly sampling mini-batches of previous experiences during training.
 
-The replay buffer is also important for CTDE because it stores the information required for centralized critic updates.
+The replay buffer is also essential for the CTDE framework because it stores the centralized information required for critic updates.
 
 ---
 
 ## Training Process
 
-The training process follows these steps:
+The MADDPG training process follows these steps:
 
-1. Reset both robots in the Gazebo environment.
-2. Get local observations for both robots.
+1. Reset both robots in the Gazebo simulation environment.
+2. Obtain local observations for both robots.
 3. Each actor selects an action using its own local observation.
-4. The joint action is applied to the Gazebo environment.
-5. The environment returns next observations, rewards, and done flags.
-6. The transition is stored in the replay buffer.
-7. A mini-batch is sampled from the replay buffer.
-8. Each critic is updated using the global state and joint actions.
-9. Each actor is updated using the policy gradient from its critic.
-10. Target actor and critic networks are softly updated.
-11. Training logs and model checkpoints are saved.
+4. The joint action is applied to the environment.
+5. The environment returns:
+   - Next observations
+   - Rewards
+   - Done flags
+6. Store the transition in the replay buffer.
+7. Sample a mini-batch from the replay buffer.
+8. Update each critic using:
+   - Global state
+   - Joint actions
+9. Update each actor using the policy gradient computed from its critic.
+10. Softly update target actor and critic networks.
+11. Save training logs, plots, and model checkpoints.
 
 ---
 
 ## Training Outputs
 
-Training outputs are saved in the `results/` directory.
+Training outputs are stored inside the `results/` directory.
 
 ```text
 results/
@@ -502,20 +515,6 @@ results/
     ├── training_plots/
     │   └── training_curve.png
     └── saved_models/
-```
-
-The training log contains:
-
-```text
-episode
-reward_robot1
-reward_robot2
-avg_reward
-```
-
-The training plot shows the reward trend over episodes.
-
----
 
 ## Installation
 
