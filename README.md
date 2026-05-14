@@ -438,7 +438,6 @@ The project uses actor-critic neural networks.
 
 The actor network receives a robot's local observation and outputs:
 
-```text
 linear_velocity
 angular_velocity
 
