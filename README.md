@@ -514,7 +514,7 @@ results/
     ├── training_plots/
     │   └── training_curve.png
     └── saved_models/
-
+```
 ## Installation
 
 ### Python Dependencies
