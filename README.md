@@ -507,7 +507,6 @@ The MADDPG training process follows these steps:
 
 Training outputs are stored inside the `results/` directory.
 
-```text
 results/
 └── gazebo_maddpg/
     ├── training_logs/
