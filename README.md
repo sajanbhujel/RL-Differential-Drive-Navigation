@@ -26,7 +26,7 @@ The following demos show the trained MADDPG policies running in the ROS 2/Gazebo
 
 The training reward curve is shown below. The plot includes the reward trends for the robots and the average reward during MADDPG training.
 
-![MADDPG Training Curve](results/gazebo_maddpg/training_plots/training_curve.png)
+![MADDPG Training Curve](results/gazebo_maddpg/training_plots/learning_curve.png)
 
 ---
 
