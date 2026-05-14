@@ -46,21 +46,19 @@ class SaliencyAgent:
         3. combined output
         """
 
-        # Create tensor first
+
         obs_tensor = torch.tensor(
             obs,
             dtype=torch.float32,
             device=self.device
         ).unsqueeze(0)
 
-        # Important: require gradient AFTER unsqueeze
+   
         obs_tensor.requires_grad_(True)
 
         action = self.actor(obs_tensor)
 
-        # -------------------------
-        # Linear velocity saliency
-        # -------------------------
+
         self.actor.zero_grad()
 
         if obs_tensor.grad is not None:
@@ -71,9 +69,7 @@ class SaliencyAgent:
 
         linear_saliency = obs_tensor.grad.abs().detach().cpu().numpy()[0].copy()
 
-        # -------------------------
-        # Angular velocity saliency
-        # -------------------------
+
         self.actor.zero_grad()
         obs_tensor.grad.zero_()
 
