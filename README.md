@@ -215,7 +215,7 @@ The Gazebo world includes:
 - Goal markers
 - Multiple EduBot robots
 
-The environment is designed so that both robots must reach their own goals while avoiding obstacles and avoiding each other.
+The environment is designed so that all robots must reach their own goals while avoiding obstacles and avoiding each other.
 
 ---
 
@@ -256,7 +256,7 @@ Each robot receives a local observation containing:
 
 The local observation is used by each actor network to select an action.
 
-For critic training, the global state is formed by concatenating the observations of both robots.
+For critic training, the global state is formed by concatenating the observations of all robots.
 
 ---
 
@@ -408,7 +408,7 @@ MADDPG is used because this project involves:
 
 Each robot has its own actor network. The actor receives the robot's local observation and outputs a continuous action.
 
-During training, each robot also has a critic network. The critic receives the global state and joint actions of both robots. This follows the CTDE framework.
+During training, each robot also has a critic network. The critic receives the global state and joint actions of all robots. This follows the CTDE framework.
 
 ---
 
@@ -617,7 +617,7 @@ Major technical challenges encountered during development include:
 - Bridging velocity, LiDAR, odometry, and pose topics
 - Reading reliable global robot poses from Gazebo
 - Handling LiDAR `inf` and `nan` values
-- Designing reset logic for one robot versus both robots
+- Designing reset logic for one robot versus all robots
 - Handling robot-robot collision termination
 - Stabilizing actor-critic training
 - Structuring the CTDE training process
