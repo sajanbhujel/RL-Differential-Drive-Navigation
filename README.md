@@ -659,7 +659,6 @@ The current project includes:
 ## Future Work
 
 Future improvements may include:
-- Adding randomized start and goal positions
 - Adding domain randomization
 - Testing sim-to-real transfer on physical robots
 
